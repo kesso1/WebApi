@@ -39,7 +39,7 @@ namespace WebApiEx2.Controllers
         public void Delete(int id)
         {
         }
-        // Get Customers from json 
+        // Get Customers from json
         private List<CustomerJson> GetCustomers()
         {
              return JsonConvert.DeserializeObject<List<CustomerJson>>(File.ReadAllText(@"C:\Users\otti\source\repos\WebApiEx2\WebApiEx2\Content\DB\customers.json"));
