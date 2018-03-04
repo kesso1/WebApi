@@ -18,6 +18,14 @@ namespace WebApiEx2.Models
         public string lastName { get; set; }
         [JsonProperty("address")]
         public string address { get; set; }
+        [JsonProperty("balance")]
+        public double balance { get; set; }
     }
-
+    public class Transaction
+    {
+        public Customer sender { get; set; }
+        public Customer recipient { get; set; }
+        public double amount { get; set; }
+    }
 }
+

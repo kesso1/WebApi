@@ -1,16 +1,1 @@
-[
-  {
-    "customer": {
-      "firstname" : "alice",
-      "lastname": "liddell",
-      "address": "776 Stoneybrook, Wonderland"
-    }
-  },
-  {
-    "customer": {
-      "firstname": "bob",
-      "lastname": "marley",
-      "address": "632 Saint Ann Parish, Jamaica"
-    }
-  }
-]
+[{"Customer":{"firstname":"alice","lastname":"liddell","address":"776 Stoneybrook, Wonderland","balance":"1000"}},{"Customer":{"firstname":"bob","lastname":"marley","address":"632 Saint Ann Parish, Jamaica","balance":"500"}}]
