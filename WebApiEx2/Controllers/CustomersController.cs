@@ -5,33 +5,49 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Web.Http;
+using System.Web.Security;
 using WebApiEx2.Models;
 
 namespace WebApiEx2.Controllers
 {
     public class CustomersController : ApiController
     {
+        private static string dbFile = @"C:\inetpub\wwwroot\Content\DB\customers.json";
         // GET api/<controller>
+        [Authorize(Users = "ottilabws\\webapi")]
         public IEnumerable<CustomerJson> Get()
         {
             return GetCustomers();
         }
 
         // GET api/<controller>/5
-        public CustomerJson Get(string name)
+        [Authorize(Users = "ottilabws\\webapi")]
+        public CustomerJson Get(HttpRequestMessage request, string name)
         {
-            CustomerJson customer = GetCustomer(name);
-            if (customer != null) return GetCustomer(name);
-            var resp = new HttpResponseMessage(HttpStatusCode.NotFound)
+            X509Certificate2 certificate = request.GetClientCertificate();
+            if (certificate.Issuer.Equals("CN=IIS Lab CARoot") && certificate.Subject.Equals("CN=AnyClientInIISLab"))
             {
-                Content = new StringContent(string.Format("No customer with name = {0}", name)),
-                ReasonPhrase = "Customer name Not Found"
+                CustomerJson customer = GetCustomer(name);
+                if (customer != null) return GetCustomer(name);
+                var customerNotFoundEx = new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent(string.Format("No customer with name = {0}", name)),
+                    ReasonPhrase = "Customer name Not Found"
+                };
+                throw new HttpResponseException(customerNotFoundEx);
+            }
+            var invalidCertEx = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Content = new StringContent(string.Format("Unauthorized Cert")),
+                ReasonPhrase = "Invalid Cert"
             };
-            throw new HttpResponseException(resp);
+            throw new HttpResponseException(invalidCertEx);
         }
 
         // POST api/<controller>
+        [Authorize(Users = "ottilabws\\webapi")]
         public void Post(Transaction transaction)
         {
             CustomerJson sender = GetCustomers().Where(x => x.Customer.firstName.Equals(transaction.sender.firstName) && x.Customer.lastName.Equals(transaction.sender.lastName)).FirstOrDefault();
@@ -53,7 +69,7 @@ namespace WebApiEx2.Controllers
                 List<CustomerJson> allCustomers = GetCustomers();
                 //CustomerJson newCustomer = JsonConvert.DeserializeObject<CustomerJson>(value);
                 allCustomers.Add(customer);
-                File.WriteAllText(@"C:\Users\otti\source\repos\WebApiEx2\WebApiEx2\Content\DB\customers.json", JsonConvert.SerializeObject(allCustomers));
+                File.WriteAllText(dbFile, JsonConvert.SerializeObject(allCustomers));
             }
             catch
             {
@@ -87,7 +103,7 @@ namespace WebApiEx2.Controllers
         // Get Customers from Json
         private List<CustomerJson> GetCustomers()
         {
-             return JsonConvert.DeserializeObject<List<CustomerJson>>(File.ReadAllText(@"C:\Users\otti\source\repos\WebApiEx2\WebApiEx2\Content\DB\customers.json"));
+             return JsonConvert.DeserializeObject<List<CustomerJson>>(File.ReadAllText(dbFile));
         }
         private CustomerJson GetCustomer(string name)
         {
@@ -97,7 +113,7 @@ namespace WebApiEx2.Controllers
         {
             List<CustomerJson> allCustomers = GetCustomers();
             allCustomers.Remove(customer);
-            File.WriteAllText(@"C:\Users\otti\source\repos\WebApiEx2\WebApiEx2\Content\DB\customers.json", JsonConvert.SerializeObject(allCustomers));
+            File.WriteAllText(dbFile, JsonConvert.SerializeObject(allCustomers));
         }
         private void saveCustomer(CustomerJson customer)
         {
@@ -105,7 +121,7 @@ namespace WebApiEx2.Controllers
             CustomerJson oldCostumer = allCustomers.Where(x => x.Customer.firstName.Equals(customer.Customer.firstName)).FirstOrDefault();
             allCustomers.Remove(oldCostumer);
             allCustomers.Add(customer);
-            File.WriteAllText(@"C:\Users\otti\source\repos\WebApiEx2\WebApiEx2\Content\DB\customers.json", JsonConvert.SerializeObject(allCustomers));
+            File.WriteAllText(dbFile, JsonConvert.SerializeObject(allCustomers));
         }
     }
 }
