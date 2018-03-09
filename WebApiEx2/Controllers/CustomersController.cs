@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Web.Http;
 using System.Web.Security;
+using WebApiEx2.Filters;
 using WebApiEx2.Models;
 
 namespace WebApiEx2.Controllers
@@ -16,9 +17,11 @@ namespace WebApiEx2.Controllers
     {
         private static string dbFile = @"C:\inetpub\wwwroot\Content\DB\customers.json";
         // GET api/<controller>
-        [Authorize(Users = "ottilabws\\webapi")]
+        //[Authorize(Users = "ottilabws\\webapi")]
+        [JwtAuthentication]
         public IEnumerable<CustomerJson> Get()
         {
+            string userName = User.Identity.Name;
             return GetCustomers();
         }
 
